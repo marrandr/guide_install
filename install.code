@@ -109,4 +109,11 @@ rm ~/.local/bin/code
 rm ~/.local/share/applications/vscode.desktop
 
 
-
+# ~/.local/apps/vscode/
+# ~/.local/bin/code
+# ~/.local/share/vscode/extensions/
+# ~/.local/share/vscode/user-data/User/
+# ~/.local/share/vscode/user-data/Cache/ , GPUCache/
+# ~/.local/share/vscode/user-data/logs/
+# ~/.local/share/applications/vscode.desktop
+# ~/.zshrc
