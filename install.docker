@@ -1,0 +1,9 @@
+# Méthode propre — script officiel
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Ajouter ton user au groupe docker (évite sudo à chaque fois)
+sudo usermod -aG docker $USER
+
+# IMPORTANT : se déconnecter/reconnecter, puis vérifier
+docker run hello-world

@@ -1,0 +1,112 @@
+INSTALL VS-CODE WITH ROOT
+
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+
+echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
+
+sudo apt update
+
+sudo apt install code
+
+INSTALL VS-CODE WITH NO ROOT
+
+~/.local/
+├── apps/
+│   └── vscode/          ← binaires VS Code
+├── bin/
+│   └── code             ← wrapper script (dans ton PATH)
+└── share/
+    ├── applications/
+    │   └── vscode.desktop
+    └── vscode/
+        ├── extensions/  ← toutes tes extensions
+        └── user-data/   ← settings, keybindings, cache...
+
+mkdir -p ~/.local/apps/vscode
+mkdir -p ~/.local/bin
+
+# Télécharger la dernière version (x64)
+cd /tmp
+curl -Lo vscode.tar.gz "https://code.visualstudio.com/sha/download?build=stable&os=linux-x64"
+
+# Extraire dans ~/.local/apps/
+tar -xzf vscode.tar.gz -C ~/.local/apps/vscode --strip-components=1
+
+# Vérifier
+~/.local/apps/vscode/bin/code --version
+
+#Créer un lien symbolique dans ~/.local/bin
+ln -sf ~/.local/apps/vscode/bin/code ~/.local/bin/code
+
+export PATH="$HOME/.local/bin:$PATH"
+
+
+# Par défaut VS Code stocke ses données dans ~/.config/Code et ~/.vscode. Pour tout garder dans ~/.local, tu peux forcer les chemins via des flags.
+# Crée un wrapper script à la place du symlink :
+
+
+# Supprimer le symlink précédent
+rm ~/.local/bin/code
+
+# Créer le wrapper
+cat > ~/.local/bin/code << 'EOF'
+#!/usr/bin/env zsh
+exec ~/.local/apps/vscode/bin/code \
+  --user-data-dir "$HOME/.local/share/vscode/user-data" \
+  --extensions-dir "$HOME/.local/share/vscode/extensions" \
+  "$@"
+EOF
+
+chmod +x ~/.local/bin/code
+
+# Crée les dossiers correspondants :
+
+mkdir -p ~/.local/share/vscode/user-data
+mkdir -p ~/.local/share/vscode/extensions
+
+4. Installer les extensions GitHub Copilot
+
+# Copilot (IA)
+code --install-extension GitHub.copilot
+
+# Copilot Chat (interface conversation)
+code --install-extension GitHub.copilot-chat
+
+
+#  Maintenance : mise à jour, nettoyage, cache
+# Télécharger la nouvelle version
+cd /tmp
+curl -Lo vscode-new.tar.gz "https://code.visualstudio.com/sha/download?build=stable&os=linux-x64"
+
+# Remplacer l'installation (les données/extensions sont séparées, donc safe)
+rm -rf ~/.local/apps/vscode
+mkdir -p ~/.local/apps/vscode
+tar -xzf vscode-new.tar.gz -C ~/.local/apps/vscode --strip-components=1
+
+echo "VS Code mis à jour ✓"
+
+Nettoyage du cache
+
+# Cache GPU/renderer (peut grossir avec le temps)
+rm -rf ~/.local/share/vscode/user-data/Cache
+rm -rf ~/.local/share/vscode/user-data/CachedExtensions
+rm -rf ~/.local/share/vscode/user-data/GPUCache
+rm -rf ~/.local/share/vscode/user-data/CachedData
+
+# Logs
+rm -rf ~/.local/share/vscode/user-data/logs
+
+# Lister les extensions installées
+
+code --list-extensions
+
+#Suppression complète (reset propre)
+
+rm -rf ~/.local/apps/vscode
+rm -rf ~/.local/share/vscode
+rm ~/.local/bin/code
+rm ~/.local/share/applications/vscode.desktop
+
+
+
