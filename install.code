@@ -40,31 +40,6 @@ tar -xzf vscode.tar.gz -C ~/.local/apps/vscode --strip-components=1
 ln -sf ~/.local/apps/vscode/bin/code ~/.local/bin/code
 
 export PATH="$HOME/.local/bin:$PATH"
-
-
-# Par défaut VS Code stocke ses données dans ~/.config/Code et ~/.vscode. Pour tout garder dans ~/.local, tu peux forcer les chemins via des flags.
-# Crée un wrapper script à la place du symlink :
-
-
-# Supprimer le symlink précédent
-rm ~/.local/bin/code
-
-# Créer le wrapper
-cat > ~/.local/bin/code << 'EOF'
-#!/usr/bin/env zsh
-exec ~/.local/apps/vscode/bin/code \
-  --user-data-dir "$HOME/.local/share/vscode/user-data" \
-  --extensions-dir "$HOME/.local/share/vscode/extensions" \
-  "$@"
-EOF
-
-chmod +x ~/.local/bin/code
-
-# Crée les dossiers correspondants :
-
-mkdir -p ~/.local/share/vscode/user-data
-mkdir -p ~/.local/share/vscode/extensions
-
 4. Installer les extensions GitHub Copilot
 
 # Copilot (IA)
