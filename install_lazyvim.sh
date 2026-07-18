@@ -395,6 +395,23 @@ return {
 }
 EOF
 
+    # Empeche nvim-treesitter de lancer ses propres installs de parsers en
+    # arriere-plan pendant les etapes 1 et 2 du bootstrap (ca entrait en
+    # concurrence avec Lazy.sync et Mason, causant des telechargements de
+    # parsers interrompus avant la fin, ex: tsx). L'etape 3 s'en charge seule.
+    cat > "$NVIM_CONFIG/lua/plugins/zz-treesitter-bootstrap.lua" <<'EOF'
+return {
+  "nvim-treesitter/nvim-treesitter",
+  opts = function(_, opts)
+    if os.getenv("LAZYVIM_TS_BOOTSTRAP_HOLD") == "1" then
+      opts.ensure_installed = {}
+      opts.auto_install = false
+    end
+    return opts
+  end,
+}
+EOF
+
     info "Fichiers de config LazyVim ecrits dans $NVIM_CONFIG"
 }
 
@@ -466,11 +483,11 @@ export PATH="$LOCAL_BIN:\$PATH"
 LOGFILE="$LOG_FILE"
 {
     echo "[\$(date '+%H:%M:%S')] Etape 1/3 : telechargement de tous les plugins (Lazy.nvim)..."
-    timeout 1800 nvim --headless -c "lua require('lazy').sync({ wait = true }); vim.cmd('qa')"
+    LAZYVIM_TS_BOOTSTRAP_HOLD=1 timeout 1800 nvim --headless -c "lua require('lazy').sync({ wait = true }); vim.cmd('qa')"
     echo "[\$(date '+%H:%M:%S')] Etape 2/3 : installation des serveurs LSP / formatters / linters (Mason)..."
-    timeout 900 nvim --headless -S "$STATE_DIR/mason_install.lua"
+    LAZYVIM_TS_BOOTSTRAP_HOLD=1 timeout 900 nvim --headless -S "$STATE_DIR/mason_install.lua"
     echo "[\$(date '+%H:%M:%S')] Etape 3/3 : compilation des parsers Treesitter..."
-    timeout 900 nvim --headless -c "TSUpdateSync" -c "qa"
+    timeout 900 nvim --headless -c "TSInstallSync! bash c css diff dockerfile html javascript jsdoc json jsonc lua luadoc luap markdown markdown_inline printf python query regex toml tsx typescript vim vimdoc xml yaml prisma" -c "qa"
     echo "[\$(date '+%H:%M:%S')] INSTALLATION_TERMINEE"
     if command -v notify-send &>/dev/null; then
         notify-send "LazyVim" "Installation terminee, tu peux lancer 'nv' !"
